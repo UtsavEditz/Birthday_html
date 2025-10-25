@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Birthday Gift — A Little Surprise</title>
+  <style>
+    :root{
+      --accent: #ff69b4;
+      --white: #ffffff;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background:#000; /* black background */
+      color:var(--white);
+      font-family: "Arial", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .stage{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      position:relative;
+      padding:20px;
+      box-sizing:border-box;
+      overflow:hidden;
+      text-align:center;
+    }
+
+    h1.title{
+      margin:8px 0 20px;
+      font-size:26px;
+      color:var(--accent);
+      letter-spacing:1px;
+    }
+
+    /* bird (inline SVG will be an <img>) */
+    #bird{
+      position:absolute;
+      top:10%;
+      left:-200px;
+      width:140px;
+      transition:left 1.8s cubic-bezier(.2,.9,.3,1), transform .6s;
+      z-index:30;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.6));
+    }
+    #bird.flying{
+      left:50%;
+      transform: translateX(-50%);
+    }
+
+    /* popup container */
+    .popup{
+      position: absolute;
+      top:46%;
+      left:50%;
+      transform: translate(-50%,-50%);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding:18px 22px;
+      border-radius:12px;
+      backdrop-filter: blur(4px);
+      z-index:40;
+      width:90%;
+      max-width:420px;
+      display:none;
+    }
+    .popup.show{ display:block; }
+
+    .popup p{
+      margin:0 0 12px;
+      font-size:18px;
+      color:var(--white);
+    }
+    .btns{ display:flex; gap:12px; justify-content:center; }
+    .btn{
+      padding:10px 18px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:15px;
+    }
+    .btn.yes{ background:var(--accent); color:#111; }
+    .btn.no{ background:rgba(255,255,255,0.12); color:var(--white); }
+
+    /* content boxes */
+    .center-box{
+      position:relative;
+      z-index:20;
+      max-width:980px;
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+
+    .photo{
+      width:300px;
+      height:300px;
+      max-width:90%;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      border: 2px solid rgba(255,255,255,0.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+      margin:12px 0;
+    }
+    .photo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .hidden{ display:none !important; }
+
+    .images-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin:14px 0;
+    }
+    .images-row .thumb{
+      width:160px;
+      height:160px;
+      border-radius:10px;
+      overflow:hidden;
+      border:2px solid rgba(255,255,255,0.04);
+    }
+    .images-row .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .countdown{
+      font-size:72px;
+      font-weight:800;
+      color:var(--accent);
+      letter-spacing:2px;
+      margin:8px 0 0;
+    }
+
+    .message{
+      font-size:28px;
+      color:var(--white);
+      margin-top:16px;
+      font-weight:700;
+    }
+
+    .subtext{
+      color:rgba(255,255,255,0.65);
+      margin-top:10px;
+      font-size:15px;
+    }
+
+    .final{
+      font-size:22px;
+      line-height:1.4;
+      margin-top:16px;
+      color:var(--accent);
+      font-weight:700;
+    }
+
+    /* small helper for tapping to play when autoplay blocked */
+    #tapToPlay{
+      position:fixed;
+      left:12px;
+      bottom:12px;
+      background:rgba(255,255,255,0.06);
+      color:var(--white);
+      padding:10px 12px;
+      border-radius:10px;
+      font-size:13px;
+      display:none;
+      z-index:60;
+      cursor:pointer;
+    }
+
+    @media (max-width:480px){
+      .photo{ width:260px; height:260px; }
+      .images-row .thumb{ width:120px; height:120px; }
+      .countdown{ font-size:64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <h1 class="title">A Little Gift — For You</h1>
+
+    <!-- BIRD: inline SVG used as an <img> so no separate bird file required -->
+    <img id="bird" src='data:image/svg+xml;utf8,
+      <svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+        <g fill="none" stroke="%23ff69b4" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 110 C60 60, 140 40, 180 85 C210 120, 260 110, 290 70" opacity="0.95"/>
+          <path d="M40 110 C80 150, 160 150, 210 120" opacity="0.8" />
+        </g>
+        <circle cx="190" cy="75" r="10" fill="%23ff69b4"/>
+      </svg>' alt="flying bird">
+
+    <!-- popup question -->
+    <div class="popup" id="popup">
+      <p>This is sent by your hubby 💌<br>Do you want to see it?</p>
+      <div class="btns">
+        <button class="btn yes" id="yesBtn">Yes</button>
+        <button class="btn no" id="noBtn">No</button>
+      </div>
+    </div>
+
+    <!-- main center area -->
+    <div class="center-box">
+
+      <!-- Paglii single photo -->
+      <div id="pagliiBox" class="hidden">
+        <div class="photo">
+          <img id="pagliiImg" src="images/paglii.jpg" alt="Paglii (add image at images/paglii.jpg)">
+        </div>
+        <div class="message">Paglii ❤️</div>
+      </div>
+
+      <!-- Countdown -->
+      <div id="countdownBox" class="hidden">
+        <div class="countdown" id="countText">3</div>
+      </div>
+
+      <!-- Bad images (3-4) -->
+      <div id="badBox" class="hidden">
+        <div class="images-row" id="badRow">
+          <div class="thumb"><img src="images/bad1.jpg" alt="bad1"></div>
+          <div class="thumb"><img src="images/bad2.jpg" alt="bad2"></div>
+          <div class="thumb"><img src="images/bad3.jpg" alt="bad3"></div>
+          <div class="thumb"><img src="images/bad4.jpg" alt="bad4"></div>
+        </div>
+      </div>
+
+      <!-- Sorry message -->
+      <div id="sorryBox" class="hidden">
+        <div class="message" id="sorryText">Sorry Sorry Sorry 😅</div>
+        <div class="subtext">Forgive the little joke...</div>
+      </div>
+
+      <!-- Good images (4) -->
+      <div id="goodBox" class="hidden">
+        <div class="images-row" id="goodRow">
+          <div class="thumb"><img src="images/good1.jpg" alt="good1"></div>
+          <div class="thumb"><img src="images/good2.jpg" alt="good2"></div>
+          <div class="thumb"><img src="images/good3.jpg" alt="good3"></div>
+          <div class="thumb"><img src="images/good4.jpg" alt="good4"></div>
+        </div>
+      </div>
+
+      <!-- Birthday wish -->
+      <div id="wishBox" class="hidden">
+        <div class="final">Happy Birthday, my love! 🎂💖</div>
+        <div class="subtext">May your day be full of joy and surprises.</div>
+      </div>
+
+      <!-- Best 5 images -->
+      <div id="bestBox" class="hidden">
+        <div class="images-row" id="bestRow">
+          <div class="thumb"><img src="images/best1.jpg" alt="best1"></div>
+          <div class="thumb"><img src="images/best2.jpg" alt="best2"></div>
+          <div class="thumb"><img src="images/best3.jpg" alt="best3"></div>
+          <div class="thumb"><img src="images/best4.jpg" alt="best4"></div>
+          <div class="thumb"><img src="images/best5.jpg" alt="best5"></div>
+        </div>
+      </div>
+
+      <!-- Final message -->
+      <div id="finalBox" class="hidden">
+        <div class="final">I Love You ∞<br>I Love You, Khepii jaan, Paglii, Sonaa 💞</div>
+        <div class="subtext">This little gift is for you — with all my heart.</div>
+      </div>
+
+    </div> <!-- center-box -->
+
+    <!-- audio -->
+    <audio id="bgm" src="music/bgm.mp3" loop preload="auto"></audio>
+
+    <!-- tap-to-play helper (shown if autoplay blocked) -->
+    <div id="tapToPlay">Tap to play music ▶️</div>
+
+  </div>
+
+  <script>
+    // Elements
+    const bird = document.getElementById('bird');
+    const popup = document.getElementById('popup');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    const pagliiBox = document.getElementById('pagliiBox');
+    const countdownBox = document.getElementById('countdownBox');
+    const badBox = document.getElementById('badBox');
+    const sorryBox = document.getElementById('sorryBox');
+    const goodBox = document.getElementById('goodBox');
+    const wishBox = document.getElementById('wishBox');
+    const bestBox = document.getElementById('bestBox');
+    const finalBox = document.getElementById('finalBox');
+
+    const countText = document.getElementById('countText');
+    const bgm = document.getElementById('bgm');
+    const tapToPlay = document.getElementById('tapToPlay');
+
+    // Helper to show/hide
+    function show(el){ el.classList.remove('hidden'); }
+    function hide(el){ el.classList.add('hidden'); }
+
+    // Try autoplay on load (may be blocked by browser)
+    window.addEventListener('load', async () => {
+      // start bird flying in
+      setTimeout(()=> bird.classList.add('flying'), 300);
+
+      // show popup shortly after bird lands
+      setTimeout(()=> popup.classList.add('show'), 2200);
+
+      // try audio
+      try {
+        await bgm.play();
+        tapToPlay.style.display = 'none';
+      } catch (e) {
+        // autoplay blocked — show tap helper
+        tapToPlay.style.display = 'block';
+      }
+    });
+
+    // If user taps "tapToPlay", attempt to play
+    tapToPlay.addEventListener('click', async () => {
+      try {
+        await bgm.play();
+        tapToPlay.style.display = 'none';
+      } catch(e){ /* ignore */ }
+    });
+
+    // ensure audio plays after any interaction (helps mobile autoplay policy)
+    function ensureAudio(){
+      bgm.play().catch(()=>{/* ignore */});
+    }
+
+    // No button
+    noBtn.addEventListener('click', () => {
+      popup.classList.remove('show');
+      bird.style.display = 'none';
+      // stop audio if playing
+      try { bgm.pause(); bgm.currentTime = 0; } catch(e){}
+      // small friendly message (optional)
+      setTimeout(()=> alert("Maybe next time! 💌"), 300);
+    });
+
+    // Yes button: kick off the full automatic sequence
+    yesBtn.addEventListener('click', () => {
+      ensureAudio();
+      popup.classList.remove('show');
+      // hide bird
+      setTimeout(()=> bird.style.display = 'none', 300);
+
+      // Sequence timing (in milliseconds)
+      const tPaglii = 0;        // show paglii immediately after click
+      const tCountdown = 2500;  // after paglii show
+      const tBad = 2500 + 3500; // after countdown
+      const tSorry = tBad + 3500;
+      const tGood = tSorry + 2200;
+      const tWish = tGood + 3200;
+      const tBest = tWish + 3000;
+      const tFinal = tBest + 4200;
+
+      // 1) show paglii
+      setTimeout(()=> {
+        show(pagliiBox);
+      }, tPaglii);
+
+      // 2) after a bit, show countdown (and hide paglii)
+      setTimeout(()=> {
+        hide(pagliiBox);
+        show(countdownBox);
+        runCountdown(3, 1000);
+      }, tCountdown - 600); // small overlap so it feels natural
+
+      // 3) show bad images
+      setTimeout(()=> {
+        hide(countdownBox);
+        show(badBox);
+      }, tBad);
+
+      // 4) show sorry message
+      setTimeout(()=> {
+        hide(badBox);
+        show(sorryBox);
+      }, tSorry);
+
+      // 5) show good images (4)
+      setTimeout(()=> {
+        hide(sorryBox);
+        show(goodBox);
+      }, tGood);
+
+      // 6) birthday wish
+      setTimeout(()=> {
+        hide(goodBox);
+        show(wishBox);
+      }, tWish);
+
+      // 7) best 5 pics
+      setTimeout(()=> {
+        hide(wishBox);
+        show(bestBox);
+      }, tBest);
+
+      // 8) final message
+      setTimeout(()=> {
+        hide(bestBox);
+        show(finalBox);
+        // keep music going — done
+      }, tFinal);
+    });
+
+    // Countdown function (visual)
+    function runCountdown(from, intervalMs){
+      let n = from;
+      countText.textContent = n;
+      const id = setInterval(()=> {
+        n--;
+        if(n <= 0){
+          countText.textContent = 1;
+          clearInterval(id);
+        } else {
+          countText.textContent = n;
+        }
+      }, intervalMs);
+      // ensure it hides after 3 steps by caller timing
+    }
+
+    // Play audio after any first tap anywhere (helps mobile)
+    document.addEventListener('click', () => ensureAudio(), { once: true });
+
+  </script>
+</body>
+</html>
